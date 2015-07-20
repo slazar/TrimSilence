@@ -7,9 +7,11 @@
 ;info "by Steve Daulton (www.easyspacepro.com). Released under GPL v2.\n\nTrims silence from the beginning and end of the selection.\n"
 
 ;control thresh "Silence Threshold (dB)" real "" -48 -100 0
+;control beginning "Leave at start (s)" real "" 0 -100 100
+;control ending "Leave at end (s)" real "" 0 -100 100
 
 ;; TrimSilence.ny by Steve Daulton. Aug 2011.
-;; Updated 24 Sept 2012.
+;; Updated 20 July 2015.
 ;; Released under terms of the GNU General Public License version 2:
 ;; http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 ;; Requires Audacity 1.3.8 or later.
@@ -88,10 +90,14 @@
 
     (let ((start (/ (first result) my-srate))
           (end (- (get-duration 1)(/ (second result) my-srate))))
+      (setq start (- start beginning))
       ;; ensure at least 1 sample remains
       (if (>= start (get-duration 1))
         (setq start (/ (1- len) *sound-srate*)))
-      ; trim
+      ; try to leave desired ending silence and trim
+      (if (<= (+ end ending) (get-duration 1))
+          (setq end (+ end ending))
+          (setq end (get-duration 1)))
       (multichan-expand #'extract-abs start end (cue s))))
 
   ;; OR print error message
